@@ -2,49 +2,46 @@ package selection;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class PartTwo {
 	
-	// http://adam.goucher.ca/parkcalc/index.php?Lot=STP&EntryTime=12%3A00&EntryTimeAMPM=AM&EntryDate=8%2F9%2F2017&ExitTime=12%3A01&ExitTimeAMPM=AM&ExitDate=8%2F9%2F2017&action=calculate&Submit=Calculate
-	// http post example: Make method for all necessary posts.
-	
 	static String basehttp = "http://adam.goucher.ca/parkcalc/index.php?Lot=";
 	static String web2http = "http://cesar.org.br/buscar?search=";
 	static String[] borderHours = new String[3];
-	
 	
 	public static void main(String[] args) throws IOException {
 
 		/* Border case 1: 00:00 AM to 12:00 AM Na mesma data
 		 * Border case 2: 11:59 PM 00:00 AM Próximo dia
-		 */
-		// Minutes borders 0-7
+		*/
+		
 		borderHours[0] = "11%3A59";
 		borderHours[1] = "12%3A00";
 		borderHours[2] = "00%3A00";
 		
 		//System.out.println("-----------------------------------------------------------------");
-		getThirdResult("work");
+		System.out.println("Web 1:");
 		testParkingLot();
+		
+		System.out.println("Web 2:");
+		// Para mudar o termo que queremos procurar, basta mudar o parametro passado para a afuncao.
+		getThirdResult("work");
 		
 		
 	}
 
+	/** Metodo utilizado paga fazer a pesquisa na pagina do cesar pelo argumento passado para a funcao. Imprime no console o Titulo da terceira vaga encontrada
+	 *  na busca assim como o link para acessar a mesma. **/
 	public static void getThirdResult ( String searchTag ) throws IOException {
 		
 		// Trabalho returns with 0 results, can't find a reason why. Searching for work instead. The html parser is able to handle 0 returns.
 		String charset = "UTF-8";
 		String searchRequest = "http://www.cesar.org.br/buscar?search=" + searchTag;
-		// http://cesar.org.br/buscar?search=trabalhe
 		
 		URL url = new URL(searchRequest);
 		URLConnection connection = url.openConnection();
@@ -57,6 +54,9 @@ public class PartTwo {
  		String postLink = "";
  		
  		String inputLine;
+ 		
+ 		// Nesse loop interpretamos a resposta em HTML para retirar o dado que queremos. Verificacoes feitas para lidar com o caso da
+ 		// consulta retornar menos que 3 valores, incluindo a possibilidade da mesma retornar nenhum resultado.
 	    while ((inputLine = br.readLine()) != null) {
 	    	
 	    	if ( inputLine.contains("<div class=\"post-list\">")) {
@@ -94,6 +94,8 @@ public class PartTwo {
 	    	}
 	    }
 	    
+	    
+	    // Prints, imprimem a informacao obtida na interpretacao do html. 
 	    if ( postTopic.equals("") || postLink.equals("") ) {
 	    	System.out.println("A busca pelo termo " + searchTag + " retornou menos que 3 ou nenhum resultado.");
 	    } else {
@@ -103,6 +105,7 @@ public class PartTwo {
 	       
 	}
 	
+	// Dado uma linha em um formato especifico em html, retira o link da mesma.
 	public static String getLink( String line ) {
 		
 		String link = "";
@@ -119,6 +122,7 @@ public class PartTwo {
 		return link;
 	}
 	
+	// Dado uma linha em formato especifico em html, teria o titulo do post da mesma.
 	public static String getPostTitle( String line ) {
 		
 		String title = "";
@@ -135,17 +139,19 @@ public class PartTwo {
 		return title;
 	}
 	
+	// Metodo a ser chamado para executar os dois casos de testes de fronteira descritos de forma automatica.
 	public static void testParkingLot() throws IOException {
 		
 		for ( int i = 0; i < 2; i++ ) {
 			
-			System.out.print("i = " + i + " result: ");
+			System.out.print("case = " + (i+1) + " result: ");
 			getFormResult(i);
 			
 		}
 		
 	}
 	
+	// Metodo que lida com a requisicao web e interpretacao da resposta para obtermos o resultado dos testes.
 	public static void getFormResult ( int i ) throws IOException {
 		
 		URL url;
@@ -194,7 +200,7 @@ public class PartTwo {
 		
 	}
 	
-	// Class used to parse the html line containing the results, returning only the cost value and the amount of time we were parked.
+	// Classe usada para interpretar o html e retornar apenas o valor desejado, que se encontra dentro de uma tag <b></b>
 	public static String htmlParser ( String htmlinput ) {
 		
 		Pattern pattern = Pattern.compile("<b>(.*?)</b>");
